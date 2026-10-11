@@ -5,6 +5,8 @@ description = "Discord agent that answers questions about Electrium design team 
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "langchain-openai>=1.7.0",
+    "langgraph>=1.2.14",
     "openai>=3.28.0",
     "psycopg[binary]>=3.3.6",
     "pydantic-settings>=2.6",
