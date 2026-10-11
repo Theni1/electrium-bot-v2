@@ -4,7 +4,7 @@ from langchain_core.tools import tool
 from electrium_bot.config import settings
 from electrium_bot.embeddings import embed
 
-MATCH_COUNT = 5
+MATCH_COUNT = 8
 
 @tool(
     description=(

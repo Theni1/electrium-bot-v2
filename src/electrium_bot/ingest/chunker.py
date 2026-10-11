@@ -63,6 +63,51 @@ def chunk_file(path: Path) -> list[Chunk]:
     ]
 
 
+def term_order(meta: dict) -> tuple[int, int]:
+    code = meta["term_code"]
+    return int(code[1:]), "WSF".index(code[0])
+
+
+# Vector search returns only the top few chunks, so "list all" questions need one chunk holding the whole list.
+def index_chunks(metas: list[dict]) -> list[Chunk]:
+    by_term: dict[str, list[dict]] = {}
+    for meta in sorted(metas, key=term_order):
+        by_term.setdefault(meta["term"], []).append(meta)
+
+    chunks = []
+    for term, projects in by_term.items():
+        count = f"{len(projects)} project{'s' if len(projects) != 1 else ''}"
+        lines = [f"Electrium ran {count} in {term}:"]
+        for meta in projects:
+            led_by = f", led by {' and '.join(meta['leads'])}" if meta["leads"] else ""
+            lines.append(f"- {meta['name']}{led_by}")
+        section = f"Projects in {term}"
+        chunks.append(
+            Chunk(
+                source="index",
+                project=None,
+                term=term,
+                section=section,
+                content=f"Electrium Projects Index\nSection: {section}\n\n" + "\n".join(lines),
+            )
+        )
+
+    lines = ["All Electrium projects by term, oldest first:"]
+    lines += [f"- {term}: {', '.join(m['name'] for m in projects)}" for term, projects in by_term.items()]
+    chunks.append(
+        Chunk(
+            source="index",
+            project=None,
+            term=None,
+            section="All Projects",
+            content="Electrium Projects Index\nSection: All Projects\n\n" + "\n".join(lines),
+        )
+    )
+    return chunks
+
+
 def chunk_all(data_dir: Path) -> list[Chunk]:
-    paths = [data_dir / "about.md", *sorted((data_dir / "projects").glob("*.md"))]
-    return [chunk for path in paths for chunk in chunk_file(path)]
+    project_paths = sorted((data_dir / "projects").glob("*.md"))
+    paths = [data_dir / "about.md", *project_paths]
+    chunks = [chunk for path in paths for chunk in chunk_file(path)]
+    return chunks + index_chunks([parse_file(path)[0] for path in project_paths])

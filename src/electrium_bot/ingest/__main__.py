@@ -28,7 +28,7 @@ def main() -> None:
             rows,
         )
 
-    print(f"Ingested {len(rows)} chunks from {len({chunk.source for chunk in chunks})} files")
+    print(f"Ingested {len(rows)} chunks")
 
 
 if __name__ == "__main__":
